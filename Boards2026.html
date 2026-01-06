@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>9-Day Study Plan</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            --container-bg: rgba(255, 255, 255, 0.95);
+            --text-color: #333;
+            --card-bg: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        [data-theme="dark"] {
+            --bg-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            --container-bg: rgba(30, 30, 50, 0.95);
+            --text-color: #ffffff;
+            --card-bg: linear-gradient(135deg, #2c3e50 0%, #1a1a1a 100%);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            padding: 15px;
+            transition: background 0.5s ease;
+        }
+
+        /* Fixed Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: var(--container-bg);
+            border: 2px solid #667eea;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--container-bg);
+            border-radius: 25px;
+            padding: 20px;
+            color: var(--text-color);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 { font-size: 2rem; text-align: center; margin-bottom: 10px; background: linear-gradient(135deg, #667eea, #f093fb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; opacity: 0.8; margin-bottom: 20px; font-size: 0.9rem; }
+
+        /* Progress Bar */
+        .progress-bar { width: 100%; height: 25px; background: #eee; border-radius: 12px; overflow: hidden; margin: 20px 0; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #f093fb); width: 0%; transition: width 0.8s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; font-weight: bold; }
+
+        /* Grid - 1 col on mobile, 3 on desktop */
+        .days-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
+
+        .day-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .day-card:hover { transform: translateY(-5px); }
+
+        /* Locked / Active State */
+        .day-card.active {
+            background: linear-gradient(135deg, #44cc44, #228822) !important;
+            cursor: default;
+            pointer-events: none; /* Prevents clicking again */
+        }
+        .day-card.active * { color: white !important; -webkit-text-fill-color: white !important; }
+        .day-card.active::after { content: '✅ COMPLETED'; position: absolute; top: 10px; right: 10px; font-size: 0.7rem; font-weight: bold; background: white; color: #228822; padding: 2px 8px; border-radius: 10px; }
+
+        .day-number { font-size: 1.8rem; font-weight: bold; margin-bottom: 10px; color: #667eea; }
+        .subject-badge { display: inline-block; background: #667eea; color: white; padding: 5px 12px; border-radius: 15px; font-size: 0.8rem; margin: 2px; }
+
+        /* Reset Button */
+        .reset-btn {
+            background: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: block;
+            margin: 40px auto 0;
+            font-weight: bold;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+        .reset-btn:hover { opacity: 1; }
+
+        /* Custom Modal Styling */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-content {
+            background: var(--container-bg);
+            padding: 25px;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            color: var(--text-color);
+        }
+        .modal-btns { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+        .btn-yes { background: #44cc44; color: white; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn-no { background: #888; color: white; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; }
+
+        .emoji-float { position: fixed; font-size: 2em; pointer-events: none; z-index: 9999; animation: floatUp 3s forwards; }
+        @keyframes floatUp { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-100px); opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙</button>
+
+    <div class="container">
+        <h1>🎯 Study Adventure</h1>
+        <p class="subtitle">Progress is saved automatically. Locked once finished.</p>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill">0%</div>
+        </div>
+        
+        <div class="days-grid" id="daysGrid">
+            <div class="day-card" id="card-1" onclick="confirmComplete(1)">
+                <div class="day-number">Day 1</div>
+                <div class="subjects"><span class="subject-badge">📐 Maths</span></div>
+                <p style="font-size: 0.8rem; opacity: 0.7;">Formulas & Practice</p>
+            </div>
+            <div class="day-card" id="card-2" onclick="confirmComplete(2)">
+                <div class="day-number">Day 2</div>
+                <div class="subjects"><span class="subject-badge">⚛️ Physics</span><span class="subject-badge">🧪 Chem</span></div>
+                <p style="font-size: 0.8rem; opacity: 0.7;">Science Power</p>
+            </div>
+            <div class="day-card" id="card-3" onclick="confirmComplete(3)">
+                <div class="day-number">Day 3</div>
+                <div class="subjects"><span class="subject-badge">🧬 Biology</span></div>
+                <p style="font-size: 0.8rem; opacity: 0.7;">Life Sciences</p>
+            </div>
+            <div class="day-card" id="card-4" onclick="confirmComplete(4)">
+                <div class="day-number">Day 4</div>
+                <div class="subjects"><span class="subject-badge">📚 English</span></div>
+                <p style="font-size: 0.8rem; opacity: 0.7;">Literature & Grammar</p>
+            </div>
+            <div class="day-card" id="card-5" onclick="confirmComplete(5)">
+                <div class="day-number">Day 5</div>
+                <div class="subjects"><span class="subject-badge">🇮🇳 Hindi</span></div>
+                <p style="font-size: 0.8rem; opacity: 0.7;">Language Focus</p>
+            </div>
+            <div class="day-card" id="card-6" onclick="confirmComplete(6)">
+                <div class="day-number">Day 6</div>
+                <div class="subjects"><span class="subject-badge">💰 Economics</span></div>
+                <p style="font-size: 0.8rem; opacity: 0.7;">Graphs & Theory</p>
+            </div>
+            <div class="day-card" id="card-7" onclick="confirmComplete(7)">
+                <div class="day-number">Day 7</div>
+                <div class="subjects"><span class="subject-badge">🗺️ Geography</span></div>
+                <p style="font-size: 0.8rem; opacity: 0.7;">Maps & Earth</p>
+            </div>
+            <div class="day-card" id="card-8" onclick="confirmComplete(8)">
+                <div class="day-number">Day 8</div>
+                <div class="subjects"><span class="subject-badge">📜 History</span><span class="subject-badge">🏛️ Politics</span></div>
+                <p style="font-size: 0.8rem; opacity: 0.7;">Past & Power</p>
+            </div>
+            <div class="day-card" id="card-9" onclick="confirmComplete(9)">
+                <div class="day-number">Day 9</div>
+                <div class="subjects"><span class="subject-badge">🤖 AI Tech</span></div>
+                <p style="font-size: 0.8rem; opacity: 0.7;">Future Studies</p>
+            </div>
+        </div>
+
+        <button class="reset-btn" onclick="confirmReset()">⚠️ Reset All Progress</button>
+    </div>
+
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Mark as Finished?</h3>
+            <p id="modalText">Once marked, you cannot undo this without a full reset.</p>
+            <div class="modal-btns">
+                <button class="btn-yes" id="modalConfirm">Yes, Done!</button>
+                <button class="btn-no" onclick="closeModal()">Wait, No</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let completedDays = JSON.parse(localStorage.getItem('study_v2_completed')) || [];
+        let pendingDay = null;
+
+        // --- Initialization ---
+        window.onload = () => {
+            const savedTheme = localStorage.getItem('study_theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+            
+            applySavedProgress();
+        };
+
+        function toggleTheme() {
+            const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+            document.getElementById('themeBtn').textContent = theme === 'dark' ? '☀️' : '🌙';
+            localStorage.setItem('study_theme', theme);
+        }
+
+        // --- Core Logic ---
+        function confirmComplete(day) {
+            if(completedDays.includes(day)) return;
+            pendingDay = day;
+            document.getElementById('modalTitle').innerText = `Finished Day ${day}?`;
+            document.getElementById('modalText').innerText = "This will lock the day as completed.";
+            document.getElementById('modalConfirm').onclick = markAsDone;
+            document.getElementById('confirmModal').style.display = 'flex';
+        }
+
+        function markAsDone() {
+            if(pendingDay && !completedDays.includes(pendingDay)) {
+                completedDays.push(pendingDay);
+                localStorage.setItem('study_v2_completed', JSON.stringify(completedDays));
+                applySavedProgress();
+                createConfetti();
+            }
+            closeModal();
+        }
+
+        function applySavedProgress() {
+            completedDays.forEach(day => {
+                const card = document.getElementById(`card-${day}`);
+                if(card) card.classList.add('active');
+            });
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const percent = Math.round((completedDays.length / 9) * 100);
+            const fill = document.getElementById('progressFill');
+            fill.style.width = percent + '%';
+            fill.textContent = percent + '% Complete';
+        }
+
+        // --- Reset Logic ---
+        function confirmReset() {
+            pendingDay = 'RESET';
+            document.getElementById('modalTitle').innerText = "Reset Everything?";
+            document.getElementById('modalText').innerText = "All your progress will be permanently deleted!";
+            document.getElementById('modalConfirm').onclick = performReset;
+            document.getElementById('confirmModal').style.display = 'flex';
+        }
+
+        function performReset() {
+            localStorage.removeItem('study_v2_completed');
+            location.reload();
+        }
+
+        function closeModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+            pendingDay = null;
+        }
+
+        function createConfetti() {
+            const emojis = ['🎉', '⭐', '🔥', '🚀'];
+            for(let i=0; i<10; i++) {
+                const e = document.createElement('div');
+                e.className = 'emoji-float';
+                e.innerText = emojis[Math.floor(Math.random()*emojis.length)];
+                e.style.left = Math.random() * 80 + 10 + '%';
+                e.style.top = '50%';
+                document.body.appendChild(e);
+                setTimeout(() => e.remove(), 2000);
+            }
+        }
+    </script>
+</body>
+</html>
